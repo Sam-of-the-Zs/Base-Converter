@@ -14,17 +14,15 @@ def convert_base(old_number, old_base, new_base):
 
     decimal = 0
     # Convert the original number to base ten.
-    for digit in old_digits:
+    for i in range(len(old_digits) - 1, -1, -1):
+        digit = old_digits[-(i + 1)]
         # Get the value of the digit.
-        value = int(digit) * old_base  ** (len(old_digits) - 1)
-
-        # Remove the digit.
-        old_digits.remove(digit)
+        value = int(digit) * old_base  ** (i)
 
         # Add the value to the decimal number.
         decimal += value
 
-    # Create a binary number.
+    # Create a new number.
     new_number = ""
 
     start_power = int(math.log(decimal, new_base))
@@ -36,7 +34,7 @@ def convert_base(old_number, old_base, new_base):
         # Create a power.
         power = new_base**i
 
-        # Add "1" to the binary number if it is less than the old_number.
+        # Add the appropriate digit to the new number.
         if power <= decimal:
 
             # Create the next digit of the new old_base.
@@ -45,7 +43,7 @@ def convert_base(old_number, old_base, new_base):
             digit = new_base_digits[division - 1]
 
             # Ensure that the digit does not exceed the list.
-            if division > new_base:
+            if division >= new_base:
                 digit = new_base_digits[new_base - 1]
 
             decimal -= power * division
@@ -53,7 +51,7 @@ def convert_base(old_number, old_base, new_base):
             # Add the digit to the new number.
             new_number += str(digit)
 
-            # Otherwise, add a "0" to the old_number.
+            # Add a "0" to the old_number if the current digit is too large.
         elif len(new_number) != 0:
             new_number += "0"
   
@@ -63,12 +61,13 @@ def convert_base(old_number, old_base, new_base):
 
 # Set up the window.
 window = tkinter.Tk()
-frame = tkinter.Frame(height=100, width=100)
+window.title("Base Converter")
 
 # Labels.
 old_base_lbl = tkinter.Label(text="Old base: ")
 old_number_lbl = tkinter.Label(text="Number: ")
 new_base_lbl = tkinter.Label(text="New base: ")
+convert_lbl = tkinter.Label(text="Base Converter", relief="ridge")
 
 # Text boxes.
 old_base_ent = tkinter.Entry(width=50)
@@ -86,9 +85,9 @@ convert_btn = tkinter.Button(text="Convert")
 
 # Place widgets.
 convert_btn.grid(row = 20, column = 30, padx = 15, pady = 5)
+convert_lbl.grid(row = 1, column = 30, padx = 15, pady = 5)
 warning_lbl.grid(row = 1, column = 15, padx = 15, pady = 5)
 output_lbl.grid(row = 25, column = 15, padx = 15, pady = 5)
-
 old_base_lbl.grid(row = 5, column = 15, pady = 5)
 old_number_lbl.grid(row = 10, column = 15, pady = 5)
 new_base_lbl.grid(row = 15, column = 15, pady = 5)
@@ -99,7 +98,8 @@ new_base_ent.grid(row = 15, column = 30, padx = 15, pady = 5)
 # Make list of possible error messages.
 errors = {0:" ", 1:"Enter positive integers only",
           2:"Old base must be in between 2 and 10",
-          3:"New base must be in between 2 and 35"}
+          3:"New base must be in between 2 and 36",
+          4:"Number must be not have digits exceeding the base's digits"}
 
 
 def handle_click(event):
@@ -114,9 +114,8 @@ def handle_click(event):
 
     try:
 
-        if (isinstance(old_base, float) or 
-            isinstance(new_base, float) or 
-            isinstance(old_number, float)):
+        if (float(old_base) != int(old_base) or float(new_base) != int(new_base) or
+            float(old_number) != int(old_number)):
             # Ensure inputs are not floats.
             error_message = 1
             raise ValueError
@@ -131,7 +130,7 @@ def handle_click(event):
             error_message = 2
             raise ValueError
 
-        elif 1 >= new_base or new_base > 35:
+        elif 1 >= new_base or new_base > 36:
             # Ensure inputs are in the apporpriate range.
             error_message = 3
             raise ValueError
@@ -140,6 +139,11 @@ def handle_click(event):
         if old_base < 0 or new_base < 0 or old_number < 0:
             error_message = 1
             raise ValueError
+        
+        for digit in str(old_number):
+            if int(digit) >= old_base:
+                error_message = 4
+                raise ValueError
 
         # Convert base.
         new_number = convert_base(old_number, old_base, new_base)
